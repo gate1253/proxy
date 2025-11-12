@@ -1,7 +1,7 @@
 const functions = require('@google-cloud/functions-framework');
 const fetch = require('node-fetch');
 
-functions.http('', async (req, res) => {
+functions.http('proxy', async (req, res) => {
   try {
     const cleanedPath = req.originalUrl.replace(/^\/proxy/, '') || '/';
     const targetUrl = 'https://res200.gate1253.workers.dev' + cleanedPath;
