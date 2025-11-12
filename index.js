@@ -3,6 +3,7 @@ const fetch = require('node-fetch');
 
 functions.http('proxy', async (req, res) => {
   try {
+    console.log("REQUEST URL", req.originalUrl);
     const cleanedPath = req.originalUrl.replace(/^\/proxy/, '') || '/';
     const targetUrl = 'https://res200.gate1253.workers.dev' + cleanedPath;
 
