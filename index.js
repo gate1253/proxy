@@ -1,11 +1,12 @@
 const functions = require('@google-cloud/functions-framework');
 const fetch = require('node-fetch');
 
-functions.http('proxy', async (req, res) => {
+functions.http('', async (req, res) => {
   try {
     const cleanedPath = req.originalUrl.replace(/^\/proxy/, '') || '/';
     const targetUrl = 'https://res200.gate1253.workers.dev' + cleanedPath;
 
+    // 헤더 필터링
     const { host, ...forwardedHeaders } = req.headers;
     delete forwardedHeaders['content-length'];
 
@@ -14,6 +15,7 @@ functions.http('proxy', async (req, res) => {
       'User-Agent': 'CloudRunProxy/1.0',
     };
 
+    // body 처리
     let body;
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       body = typeof req.body === 'object' ? JSON.stringify(req.body) : req.body;
@@ -22,23 +24,18 @@ functions.http('proxy', async (req, res) => {
     const response = await fetch(targetUrl, {
       method: req.method,
       headers,
-      redirect: 'follow',
+      redirect: 'follow', // 리디렉션 따라가기
       body,
     });
 
-    // 404 또는 기타 오류 상태 처리
-    if (!response.ok) {
-      console.warn(`Upstream returned ${response.status} for ${targetUrl}`);
-      const errorText = await response.text();
-      res.status(404).send(`Not Found`);
-      return;
-    }
-
-    const data = await response.text();
+    // 응답 헤더 복사
     response.headers.forEach((value, key) => {
       res.setHeader(key, value);
     });
-    res.status(response.status).send(data);
+
+    // 바이너리 응답을 스트림으로 전달
+    res.status(response.status);
+    response.body.pipe(res);
   } catch (error) {
     console.error('Proxy error:', error);
     res.status(500).send('Proxy failed');
