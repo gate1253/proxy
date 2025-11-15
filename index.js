@@ -31,12 +31,14 @@ functions.http('proxy', async (req, res) => {
 
     // 응답 헤더 복사
     response.headers.forEach((value, key) => {
-      if (key.toLowerCase() !== 'cache-control') {
+      const lowerKey = key.toLowerCase();
+      if (lowerKey !== 'cache-control' && lowerKey !== 'age') {
         res.setHeader(key, value);
       }
     });
 
     // 바이너리 응답을 스트림으로 전달
+    res.setHeader('Cache-Control', 'public, max-age=60');
     res.status(response.status);
     response.body.pipe(res);
   } catch (error) {
