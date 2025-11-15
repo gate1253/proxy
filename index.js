@@ -31,7 +31,9 @@ functions.http('proxy', async (req, res) => {
 
     // 응답 헤더 복사
     response.headers.forEach((value, key) => {
-      res.setHeader(key, value);
+      if (key.toLowerCase() !== 'cache-control') {
+        res.setHeader(key, value);
+      }
     });
 
     // 바이너리 응답을 스트림으로 전달
