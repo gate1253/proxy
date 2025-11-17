@@ -47,7 +47,8 @@ functions.http('proxy', async (req, res) => {
           res.setHeader(key, value);
         }
       });
-      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Cache-Control', 'public, max-age=60, must-revalidate');
+      res.setHeader('Last-Modified', new Date().toUTCString());
       res.status(fallbackResponse.status);
       fallbackResponse.body.pipe(res);
     } else {
@@ -59,6 +60,7 @@ functions.http('proxy', async (req, res) => {
         }
       });
       res.setHeader('Cache-Control', 'public, max-age=60, must-revalidate');
+      res.setHeader('Last-Modified', new Date().toUTCString());
       res.status(response.status);
       response.body.pipe(res);
     }
