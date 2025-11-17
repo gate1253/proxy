@@ -58,7 +58,7 @@ functions.http('proxy', async (req, res) => {
           res.setHeader(key, value);
         }
       });
-      res.setHeader('Cache-Control', 'public, max-age=60');
+      res.setHeader('Cache-Control', 'public, max-age=60, must-revalidate');
       res.status(response.status);
       response.body.pipe(res);
     }
