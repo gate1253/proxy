@@ -29,18 +29,39 @@ functions.http('proxy', async (req, res) => {
       body,
     });
 
-    // 응답 헤더 복사
-    response.headers.forEach((value, key) => {
-      const lowerKey = key.toLowerCase();
-      if (lowerKey !== 'cache-control' && lowerKey !== 'age') {
-        res.setHeader(key, value);
-      }
-    });
+    // 403, 404 에러 코드에 대한 대체 URL 처리
+    const fallbackUrls = {
+      403: req.query['403'],
+      404: req.query['404'],
+    };
+    const fallbackUrl = fallbackUrls[response.status];
 
-    // 바이너리 응답을 스트림으로 전달
-    res.setHeader('Cache-Control', 'public, max-age=60');
-    res.status(response.status);
-    response.body.pipe(res);
+    if (fallbackUrl) {
+      console.log(`Fallback for ${response.status}: fetching ${fallbackUrl}`);
+      const fallbackResponse = await fetch(fallbackUrl, { headers });
+
+      // fallback 응답 헤더 처리
+      fallbackResponse.headers.forEach((value, key) => {
+        const lowerKey = key.toLowerCase();
+        if (lowerKey !== 'cache-control' && lowerKey !== 'age') {
+          res.setHeader(key, value);
+        }
+      });
+      res.setHeader('Cache-Control', 'no-cache');
+      res.status(fallbackResponse.status);
+      fallbackResponse.body.pipe(res);
+    } else {
+      // 기존 응답 처리
+      response.headers.forEach((value, key) => {
+        const lowerKey = key.toLowerCase();
+        if (lowerKey !== 'cache-control' && lowerKey !== 'age') {
+          res.setHeader(key, value);
+        }
+      });
+      res.setHeader('Cache-Control', 'public, max-age=60');
+      res.status(response.status);
+      response.body.pipe(res);
+    }
   } catch (error) {
     console.error('Proxy error:', error);
     res.status(500).send('Proxy failed');
