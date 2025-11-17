@@ -3,6 +3,11 @@ const fetch = require('node-fetch');
 
 functions.http('proxy', async (req, res) => {
   try {
+    // 쿼리스트링에서 cache 값을 읽어 max-age 설정 (기본값 60)
+    const cacheParam = parseInt(req.query.cache, 10);
+    const maxAge = !isNaN(cacheParam) && cacheParam >= 0 ? cacheParam : 60;
+    const cacheControlHeader = `public, max-age=${maxAge}, must-revalidate`;
+
     console.log("REQUEST URL", req.originalUrl);
     const cleanedPath = req.originalUrl.replace(/^\/proxy/, '') || '/';
     const targetUrl = 'https://res200.gate1253.workers.dev' + cleanedPath;
@@ -47,7 +52,7 @@ functions.http('proxy', async (req, res) => {
           res.setHeader(key, value);
         }
       });
-      res.setHeader('Cache-Control', 'public, max-age=60, must-revalidate');
+      res.setHeader('Cache-Control', cacheControlHeader);
       res.setHeader('Last-Modified', new Date().toUTCString());
       res.status(fallbackResponse.status);
       fallbackResponse.body.pipe(res);
@@ -59,7 +64,7 @@ functions.http('proxy', async (req, res) => {
           res.setHeader(key, value);
         }
       });
-      res.setHeader('Cache-Control', 'public, max-age=60, must-revalidate');
+      res.setHeader('Cache-Control', cacheControlHeader);
       res.setHeader('Last-Modified', new Date().toUTCString());
       res.status(response.status);
       response.body.pipe(res);
