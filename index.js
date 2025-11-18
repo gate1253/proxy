@@ -34,6 +34,8 @@ functions.http('proxy', async (req, res) => {
       method: req.method,
       headers,
       redirect: 'follow', // 리디렉션 따라가기
+      // 자동 압축 해제를 비활성화하여 Content-Encoding을 그대로 유지합니다.
+      compress: false,
       body,
     });
 
