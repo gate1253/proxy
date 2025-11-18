@@ -14,8 +14,17 @@ functions.http('proxy', async (req, res) => {
 
     // 헤더 필터링
     const { host, ...forwardedHeaders } = req.headers;
+    // Hop-by-hop 헤더는 프록시에서 전달하면 안 됩니다.
+    // 이를 전달하면 'protocol error'의 원인이 될 수 있습니다.
+    delete forwardedHeaders['connection'];
+    delete forwardedHeaders['keep-alive'];
+    delete forwardedHeaders['proxy-authenticate'];
+    delete forwardedHeaders['proxy-authorization'];
+    delete forwardedHeaders['te'];
+    delete forwardedHeaders['trailers'];
+    delete forwardedHeaders['transfer-encoding'];
+    delete forwardedHeaders['upgrade'];
     delete forwardedHeaders['content-length'];
-    // 304 응답을 방지하기 위해 조건부 요청 헤더 제거
     delete forwardedHeaders['if-none-match'];
     delete forwardedHeaders['if-modified-since'];
 
