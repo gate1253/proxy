@@ -34,6 +34,8 @@ functions.http('proxy', async (req, res) => {
       method: req.method,
       headers,
       redirect: 'follow', // 리디렉션 따라가기
+      // 자동 압축 해제를 비활성화하여 Content-Encoding을 그대로 유지합니다.
+      compress: false,
       body,
     });
 
@@ -46,37 +48,35 @@ functions.http('proxy', async (req, res) => {
 
     if (fallbackUrl) {
       console.log(`Fallback for ${response.status}: fetching ${fallbackUrl}`);
-      const fallbackResponse = await fetch(fallbackUrl, { headers });
+      const fallbackResponse = await fetch(fallbackUrl, { headers, compress: false });
+      const fallbackBody = await fallbackResponse.buffer();
 
       // fallback 응답 헤더 처리
       fallbackResponse.headers.forEach((value, key) => {
         const lowerKey = key.toLowerCase();
-        // node-fetch가 자동으로 압축을 해제하므로 Content-Encoding 헤더를 전달하지 않습니다.
-        if (lowerKey !== 'cache-control' &&
-            lowerKey !== 'age' &&
-            lowerKey !== 'content-encoding') {
+        // 프록시가 설정하는 헤더 외에는 모두 그대로 전달합니다.
+        if (lowerKey !== 'cache-control' && lowerKey !== 'age') {
           res.setHeader(key, value);
         }
       });
       res.setHeader('Cache-Control', cacheControlHeader);
       res.setHeader('Last-Modified', new Date().toUTCString());
       res.status(fallbackResponse.status);
-      fallbackResponse.body.pipe(res);
+      res.send(fallbackBody);
     } else {
+      const responseBody = await response.buffer();
       // 기존 응답 처리
       response.headers.forEach((value, key) => {
         const lowerKey = key.toLowerCase();
-        // node-fetch가 자동으로 압축을 해제하므로 Content-Encoding 헤더를 전달하지 않습니다.
-        if (lowerKey !== 'cache-control' &&
-            lowerKey !== 'age' &&
-            lowerKey !== 'content-encoding') {
+        // 프록시가 설정하는 헤더 외에는 모두 그대로 전달합니다.
+        if (lowerKey !== 'cache-control' && lowerKey !== 'age') {
           res.setHeader(key, value);
         }
       });
       res.setHeader('Cache-Control', cacheControlHeader);
       res.setHeader('Last-Modified', new Date().toUTCString());
       res.status(response.status);
-      response.body.pipe(res);
+      res.send(responseBody);
     }
   } catch (error) {
     console.error('Proxy error:', error);
