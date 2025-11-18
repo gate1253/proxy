@@ -51,7 +51,10 @@ functions.http('proxy', async (req, res) => {
       // fallback 응답 헤더 처리
       fallbackResponse.headers.forEach((value, key) => {
         const lowerKey = key.toLowerCase();
-        if (lowerKey !== 'cache-control' && lowerKey !== 'age') {
+        // node-fetch가 자동으로 압축을 해제하므로 Content-Encoding 헤더를 전달하지 않습니다.
+        if (lowerKey !== 'cache-control' &&
+            lowerKey !== 'age' &&
+            lowerKey !== 'content-encoding') {
           res.setHeader(key, value);
         }
       });
@@ -63,7 +66,10 @@ functions.http('proxy', async (req, res) => {
       // 기존 응답 처리
       response.headers.forEach((value, key) => {
         const lowerKey = key.toLowerCase();
-        if (lowerKey !== 'cache-control' && lowerKey !== 'age') {
+        // node-fetch가 자동으로 압축을 해제하므로 Content-Encoding 헤더를 전달하지 않습니다.
+        if (lowerKey !== 'cache-control' &&
+            lowerKey !== 'age' &&
+            lowerKey !== 'content-encoding') {
           res.setHeader(key, value);
         }
       });
