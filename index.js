@@ -15,6 +15,9 @@ functions.http('proxy', async (req, res) => {
     // 헤더 필터링
     const { host, ...forwardedHeaders } = req.headers;
     delete forwardedHeaders['content-length'];
+    // 304 응답을 방지하기 위해 조건부 요청 헤더 제거
+    delete forwardedHeaders['if-none-match'];
+    delete forwardedHeaders['if-modified-since'];
 
     const headers = {
       ...forwardedHeaders,
