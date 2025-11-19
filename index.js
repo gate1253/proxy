@@ -35,6 +35,7 @@ functions.http('proxy', async (req, res) => {
       headers,
       redirect: 'follow', // 리디렉션 따라가기
       body,
+      compress: false, // 응답 본문 압축 해제 비활성화
     });
 
     // 403, 404 에러 코드에 대한 대체 URL 처리
@@ -46,7 +47,10 @@ functions.http('proxy', async (req, res) => {
 
     if (fallbackUrl) {
       console.log(`Fallback for ${response.status}: fetching ${fallbackUrl}`);
-      const fallbackResponse = await fetch(fallbackUrl, { headers });
+      const fallbackResponse = await fetch(fallbackUrl, {
+        headers,
+        compress: false, // 응답 본문 압축 해제 비활성화
+      });
 
       // fallback 응답 헤더 처리
       fallbackResponse.headers.forEach((value, key) => {
